@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배틀그라운드 프로 마스터 감도 변환기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .bg-pubg-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+        }
+        .text-pubg-orange {
+            color: #f97316;
+        }
+        .bg-pubg-orange {
+            background-color: #f97316;
+        }
+        .border-pubg-orange {
+            border-color: #f97316;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 py-6 mb-8">
+        <div class="max-w-4xl mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-crosshair text-2xl text-pubg-orange"></i>
+                <h1 class="text-xl font-bold tracking-tight text-white">PUBG 프로 마스터 감도 변환기</h1>
+            </div>
+            <span class="text-xs bg-slate-800 text-slate-400 px-3 py-1 rounded-full border border-slate-700">Pro Edition v2.1</span>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 space-y-6">
+        <!-- 1. 프로 선수 선택 -->
+        <section class="bg-pubg-card rounded-xl p-6 shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-white flex items-center">
+                    <i class="fa-solid fa-user-ninja text-pubg-orange mr-2"></i> 1. 기준 프로 선수 선택 <span class="text-xs text-slate-400 ml-2">(스크롤)</span>
+                </h2>
+                <span class="text-xs text-pubg-orange bg-slate-900 px-2.5 py-1 rounded border border-slate-700" id="pro-count-badge">총 0명</span>
+            </div>
+            <div class="max-h-56 overflow-y-auto pr-2 grid grid-cols-1 md:grid-cols-2 gap-2.5" id="pro-buttons">
+                <!-- 동적 생성 -->
+            </div>
+        </section>
+
+        <!-- 2. 내 마우스 설정 입력 -->
+        <section class="bg-pubg-card rounded-xl p-6 shadow-lg">
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center">
+                <i class="fa-solid fa-sliders text-pubg-orange mr-2"></i> 2. 내 마우스 DPI 설정
+            </h2>
+            
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">내 DPI (400 ~ 1600)</label>
+                <div class="flex items-center space-x-2 mb-3">
+                    <input type="number" id="my-dpi" min="400" max="1600" step="10" value="800"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white font-bold text-lg focus:outline-none focus:border-pubg-orange text-center">
+                </div>
+                <!-- 빠른 DPI 선택 버튼 -->
+                <div class="flex space-x-1.5" id="dpi-preset-buttons">
+                    <button type="button" onclick="setDpi(400)" class="dpi-btn flex-1 py-1 text-xs rounded font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 cursor-pointer">400</button>
+                    <button type="button" onclick="setDpi(800)" class="dpi-btn flex-1 py-1 text-xs rounded font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 cursor-pointer">800</button>
+                    <button type="button" onclick="setDpi(1000)" class="dpi-btn flex-1 py-1 text-xs rounded font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 cursor-pointer">1000</button>
+                    <button type="button" onclick="setDpi(1200)" class="dpi-btn flex-1 py-1 text-xs rounded font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 cursor-pointer">1200</button>
+                    <button type="button" onclick="setDpi(1600)" class="dpi-btn flex-1 py-1 text-xs rounded font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 cursor-pointer">1600</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 환산 결과 출력 -->
+        <section class="bg-pubg-card rounded-xl p-6 shadow-lg border border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-white flex items-center">
+                        <i class="fa-solid fa-calculator text-pubg-orange mr-2"></i> DPI 연동 세부 환산 결과
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1" id="selected-pro-info">선택된 프로: 불러오는 중...</p>
+                </div>
+                <button type="button" onclick="copyAllResults()" class="bg-slate-800 hover:bg-slate-700 text-xs text-pubg-orange border border-pubg-orange px-3 py-2 rounded-lg transition-colors flex items-center cursor-pointer">
+                    <i class="fa-solid fa-copy mr-1"></i> 전체 감도 복사
+                </button>
+            </div>
+
+            <!-- 요약 카드 (일반 감도 & 수직 감도 연동값) -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-800 text-center">
+                    <span class="text-xs text-slate-400 block mb-1">환산된 일반 감도</span>
+                    <span class="text-2xl font-extrabold text-pubg-orange" id="res-general">50</span>
+                </div>
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-800 text-center">
+                    <span class="text-xs text-slate-400 block mb-1">DPI 연동된 수직 감도 배율</span>
+                    <span class="text-2xl font-extrabold text-white" id="res-vertical">1.0</span>
+                </div>
+            </div>
+
+            <!-- 스코프별 감도 상세 테이블 -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-300">
+                    <thead class="text-xs text-slate-400 uppercase bg-slate-900/50">
+                        <tr>
+                            <th class="px-4 py-3">감도 항목 / 스코프</th>
+                            <th class="px-4 py-3 text-center">프로 원본 감도</th>
+                            <th class="px-4 py-3 text-center text-pubg-orange">내 환산 감도</th>
+                            <th class="px-4 py-3 text-right">복사</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scope-table-body" class="divide-y divide-slate-800">
+                        <!-- 동적 생성 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const PRO_DATA = [
+            {
+                id: 'seoul',
+                name: 'Gen.G 서울 (Seoul)',
+                team: 'Gen.G',
+                dpi: 400,
+                generalSens: 50,
+                verticalSens: 1.0,
+                scopes: { 
+                    '일반 (화면 둘러보기)': 50, 
+                    '1배율 (레드닷/홀로)': 50, 
+                    '2배율 스코프': 50, 
+                    '3배율 스코프': 50, 
+                    '4배율 스코프': 50, 
+                    '6배율 스코프': 50, 
+                    '8배율 스코프': 50 
+                }
+            },
+            {
+                id: 'inonix',
+                name: 'Gen.G 이노닉스 (Inonix)',
+                team: 'Gen.G',
+                dpi: 800,
+                generalSens: 35,
+                verticalSens: 1.15,
+                scopes: { 
+                    '일반 (화면 둘러보기)': 35, 
+                    '1배율 (레드닷/홀로)': 35, 
+                    '2배율 스코프': 35, 
+                    '3배율 스코프': 35, 
+                    '4배율 스코프': 35, 
+                    '6배율 스코프': 33, 
+                    '8배율 스코프': 30 
+                }
+            },
+            {
+                id: 'salute',
+                name: 'DNW 살루트 (Salute)',
+                team: 'Danawa',
+                dpi: 400,
+                generalSens: 48,
+                verticalSens: 1.0,
+                scopes: { 
+                    '일반 (화면 둘러보기)': 48, 
+                    '1배율 (레드닷/홀로)': 48, 
+                    '2배율 스코프': 45, 
+                    '3배율 스코프': 43, 
+                    '4배율 스코프': 42, 
+                    '6배율 스코프': 40, 
+                    '8배율 스코프': 38 
+                }
+            },
+            {
+                id: 'seongjang',
+                name: 'DNW 성장 (seongjang)',
+                team: 'Danawa',
+                dpi: 800,
+                generalSens: 28,
+                verticalSens: 1.1,
+                scopes: { 
+                    '일반 (화면 둘러보기)': 28, 
+                    '1배율 (레드닷/홀로)': 28, 
+                    '2배율 스코프': 30, 
+                    '3배율 스코프': 32, 
+                    '4배율 스코프': 30, 
+                    '6배율 스코프': 28, 
+                    '8배율 스코프': 25 
+                }
+            },
+            {
+                id: 'pio',
+                name: 'Pio (피오)',
+                team: 'Streamer',
+                dpi: 400,
+                generalSens: 55,
+                verticalSens: 1.1,
+                scopes: { 
+                    '일반 (화면 둘러보기)': 55, 
+                    '1배율 (레드닷/홀로)': 52, 
+                    '2배율 스코프': 50, 
+                    '3배율 스코프': 48, 
+                    '4배율 스코프': 48, 
+                    '6배율 스코프': 45, 
+                    '8배율 스코프': 42 
+                }
+            },
+            {
+                id: 'aqua5',
+                name: 'Aqua5 (아쿠아파이브)',
+                team: 'Pro / Streamer',
+                dpi: 400,
+                generalSens: 47,
+                verticalSens: 1.0,
+                scopes: { 
+                    '일반 (화면 둘러보기)': 47, 
+                    '1배율 (레드닷/홀로)': 47, 
+                    '2배율 스코프': 45, 
+                    '3배율 스코프': 45, 
+                    '4배율 스코프': 43, 
+                    '6배율 스코프': 40, 
+                    '8배율 스코프': 38 
+                }
+            },
+            {
+                id: 'heaven',
+                name: '헤븐 (Heaven)',
+                team: 'Pro',
+                dpi: 800,
+                generalSens: 33,
+                verticalSens: 1.05,
+                scopes: { 
+                    '일반 (화면 둘러보기)': 33, 
+                    '1배율 (레드닷/홀로)': 33, 
+                    '2배율 스코프': 35, 
+                    '3배율 스코프': 35, 
+                    '4배율 스코프': 34, 
+                    '6배율 스코프': 32, 
+                    '8배율 스코프': 30 
+                }
+            }
+        ];
+
+        let selectedProId = 'seoul';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProButtons();
+            setupEventListeners();
+            loadSavedSettings();
+            calculateAndRender();
+        });
+
+        function renderProButtons() {
+            const container = document.getElementById('pro-buttons');
+            document.getElementById('pro-count-badge').innerText = `총 ${PRO_DATA.length}명 등록`;
+            if (!container) return;
+            container.innerHTML = PRO_DATA.map(pro => `
+                <button type="button" onclick="selectPro('${pro.id}')" id="pro-btn-${pro.id}"
+                    class="pro-btn text-left p-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs text-pubg-orange font-semibold">${pro.team}</span>
+                        <span class="text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">DPI ${pro.dpi}</span>
+                    </div>
+                    <div class="font-bold text-sm text-white mt-0.5">${pro.name}</div>
+                    <div class="text-xs text-slate-400 mt-1">수직: ${pro.verticalSens} | 일반감도: ${pro.generalSens}</div>
+                </button>
+            `).join('');
+        }
+
+        function selectPro(id) {
+            selectedProId = id;
+            document.querySelectorAll('.pro-btn').forEach(btn => {
+                btn.classList.remove('border-pubg-orange', 'bg-slate-800/80');
+                btn.classList.add('border-slate-800', 'bg-slate-900');
+            });
+            const selectedBtn = document.getElementById(`pro-btn-${id}`);
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-slate-800', 'bg-slate-900');
+                selectedBtn.classList.add('border-pubg-orange', 'bg-slate-800/80');
+            }
+            calculateAndRender();
+        }
+
+        function setDpi(val) {
+            document.getElementById('my-dpi').value = val;
+            updateDpiButtonStyles(val);
+            calculateAndRender();
+        }
+
+        function updateDpiButtonStyles(currentDpi) {
+            document.querySelectorAll('.dpi-btn').forEach(btn => {
+                if (parseInt(btn.innerText) === currentDpi) {
+                    btn.classList.add('bg-pubg-orange', 'text-white', 'border-pubg-orange');
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                } else {
+                    btn.classList.remove('bg-pubg-orange', 'text-white', 'border-pubg-orange');
+                    btn.classList.add('bg-slate-800', 'text-slate-300');
+                }
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('my-dpi').addEventListener('input', (e) => {
+                let val = parseInt(e.target.value) || 800;
+                updateDpiButtonStyles(val);
+                calculateAndRender();
+            });
+        }
+
+        function calculateAndRender() {
+            const pro = PRO_DATA.find(p => p.id === selectedProId) || PRO_DATA[0];
+            let myDpi = parseInt(document.getElementById('my-dpi').value) || 800;
+
+            if (myDpi < 100) myDpi = 100;
+
+            // DPI 변환 비율 계산 (프로 DPI / 내 DPI)
+            const ratio = pro.dpi / myDpi;
+            
+            // 1. 일반 감도 환산
+            const myGeneralSens = Math.round((pro.generalSens * ratio) * 10) / 10;
+
+            // 2. 수직 감도 배율 연동 계산 (물리적 반동 체감 균형을 위한 정밀 보정 연동)
+            const myVerticalSens = Math.round((pro.verticalSens * Math.sqrt(ratio)) * 100) / 100;
+
+            saveSettings(myDpi, selectedProId);
+
+            document.getElementById('selected-pro-info').innerText = 
+                `기준 선수: ${pro.name} (원본 DPI ${pro.dpi} / 원본수직 ${pro.verticalSens})`;
+
+            document.getElementById('res-general').innerText = myGeneralSens;
+            document.getElementById('res-vertical').innerText = myVerticalSens;
+
+            // 3. 스코프별 세부 감도 환산 테이블 렌더링
+            const tbody = document.getElementById('scope-table-body');
+            tbody.innerHTML = Object.entries(pro.scopes).map(([scopeName, sens]) => {
+                const convertedSens = Math.round((sens * ratio) * 10) / 10;
+                return `
+                    <tr class="hover:bg-slate-800/50">
+                        <td class="px-4 py-3 font-medium text-white">${scopeName}</td>
+                        <td class="px-4 py-3 text-center text-slate-400">${sens}</td>
+                        <td class="px-4 py-3 text-center font-bold text-pubg-orange text-base">${convertedSens}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button type="button" onclick="copyToClipboard('${convertedSens}')" class="text-slate-400 hover:text-white px-2 py-1 text-xs cursor-pointer" title="이 감도 복사">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`감도값 [${text}]이(가) 클립보드에 복사되었습니다!`);
+            });
+        }
+
+        function copyAllResults() {
+            const general = document.getElementById('res-general').innerText;
+            const vertical = document.getElementById('res-vertical').innerText;
+            let resultText = `[배그 마스터 환산 감도]\n일반 감도: ${general}\n수직 감도 배율: ${vertical}\n`;
+            
+            document.querySelectorAll('#scope-table-body tr').forEach(row => {
+                const cols = row.querySelectorAll('td');
+                if (cols.length >= 3) {
+                    resultText += `${cols[0].innerText}: ${cols[2].innerText}\n`;
+                }
+            });
+
+            navigator.clipboard.writeText(resultText).then(() => {
+                alert('전체 세부 감도 설정이 클립보드에 복사되었습니다!');
+            });
+        }
+
+        function saveSettings(dpi, proId) {
+            localStorage.setItem('pubg_my_dpi', dpi);
+            localStorage.setItem('pubg_selected_pro', proId);
+        }
+
+        function loadSavedSettings() {
+            const savedDpi = localStorage.getItem('pubg_my_dpi');
+            const savedPro = localStorage.getItem('pubg_selected_pro');
+
+            if (savedDpi) {
+                document.getElementById('my-dpi').value = savedDpi;
+                updateDpiButtonStyles(parseInt(savedDpi));
+            } else {
+                updateDpiButtonStyles(800);
+            }
+            if (savedPro && PRO_DATA.some(p => p.id === savedPro)) {
+                selectPro(savedPro);
+            } else {
+                selectPro('seoul');
+            }
+        }
+    </script>
+</body>
+</html>
