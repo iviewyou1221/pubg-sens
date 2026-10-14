@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>배틀그라운드 프로 마스터 감도 변환기</title>
+    <!-- 구글 애드센스 소유권 확인 스크립트 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7325309918596788" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -330,13 +332,9 @@
 
             if (myDpi < 100) myDpi = 100;
 
-            // DPI 변환 비율 계산 (프로 DPI / 내 DPI)
             const ratio = pro.dpi / myDpi;
             
-            // 1. 일반 감도 환산
             const myGeneralSens = Math.round((pro.generalSens * ratio) * 10) / 10;
-
-            // 2. 수직 감도 배율 연동 계산 (물리적 반동 체감 균형을 위한 정밀 보정 연동)
             const myVerticalSens = Math.round((pro.verticalSens * Math.sqrt(ratio)) * 100) / 100;
 
             saveSettings(myDpi, selectedProId);
@@ -347,7 +345,6 @@
             document.getElementById('res-general').innerText = myGeneralSens;
             document.getElementById('res-vertical').innerText = myVerticalSens;
 
-            // 3. 스코프별 세부 감도 환산 테이블 렌더링
             const tbody = document.getElementById('scope-table-body');
             tbody.innerHTML = Object.entries(pro.scopes).map(([scopeName, sens]) => {
                 const convertedSens = Math.round((sens * ratio) * 10) / 10;
